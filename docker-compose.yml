@@ -1,0 +1,41 @@
+version: "3"
+services:
+  db:
+    image: postgres:10
+    environment:
+      POSTGRES_MULTIPLE_DATABASES: ruby_elk_development,ruby_elk_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - "./config/docker/database/create-multiple-postgresql-databases.sh:/docker-entrypoint-initdb.d/create-multiple-postgresql-databases.sh"
+    depends_on: 
+     - elasticsearch
+     - kibana
+  elasticsearch:
+    image: elasticsearch:7.7.1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - cluster.name=ruby-elk
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - xpack.graph.enabled=false
+      - xpack.watcher.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+  kibana:
+    image: kibana:7.7.1
+    ports:
+      - "5601:5601"
+volumes:
+  mysqldata:
+    driver: local
+  esdata:
+    driver: local
+  postgres-data:
